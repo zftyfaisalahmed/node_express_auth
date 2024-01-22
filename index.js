@@ -27,6 +27,7 @@ app.use(expressFileUpoload({
 // api route
 app.use(`/api/auth`, require('./route/authRoute'))
 app.use(`/api/file`, require("./route/fileRoute"))
+app.use(`/api/user`, require("./route/userRouter"))
 
 // default route
 app.use(`**`, (req, res) => {

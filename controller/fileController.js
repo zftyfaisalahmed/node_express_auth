@@ -29,14 +29,14 @@ const uploadFile = async (req, res) => {
 
         // no files are attached
         if(!req.files)
-            return res.status(StatusCodes.NOT_FOUND).json({ msg : `No Files...` })
+            return res.status(StatusCodes.NOT_FOUND).json({ msg : `No Files...` , success : false })
 
 
         let extUser  = await User.findById({ _id : id }).select('-password')
 
             if(!extUser){
                 removeTemp(product.tempFilePath)
-                return res.status(StatusCodes.CONFLICT).json({ msg : `requested user id not found` })
+                return res.status(StatusCodes.CONFLICT).json({ msg : `requested user id not found`, success : false })
             }
 
             // validate the file ext
@@ -52,22 +52,22 @@ const uploadFile = async (req, res) => {
 
                     if(err){
                         removeTemp(product.tempFilePath)
-                        return res.status(StatusCodes.CONFLICT).json({ msg : err })
+                        return res.status(StatusCodes.CONFLICT).json({ msg : err , success : false})
                     }
 
-                    let fileRes = await FileSchema.create({ userId: extUser._id, newName : filename, user : extUser, info : product })
+                    let fileRes = await FileSchema.create({ userId: extUser._id, newName : filename, extName :  ext, user : extUser, info : product})
 
-                    res.status(StatusCodes.ACCEPTED).json({ msg : "File uploaded successfully", file : fileRes })
+                    res.status(StatusCodes.ACCEPTED).json({ msg : "File uploaded successfully", file : fileRes, success : true })
 
                 })
             } else  {
                 removeTemp(product.tempFilePath)
-                return res.status(StatusCodes.CONFLICT).json({ msg : `Updaload Respective files` })
+                return res.status(StatusCodes.CONFLICT).json({ msg : `Updaload Respective files`, success : false })
             }   
 
     } catch (err) {
         removeTemp(req.files.product.tempFilePath)
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err })
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
     }
 }
 
@@ -78,9 +78,9 @@ const readFile = async (req, res) => {
         
         let filteredFiles = files.filter((item) => item.userId === req.userId)
 
-        res.status(StatusCodes.OK).json({ length : filteredFiles.length, files : filteredFiles})
+        res.status(StatusCodes.OK).json({ length : filteredFiles.length, files : filteredFiles, success : true})
     } catch (err) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err })
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
     }
 }
 
@@ -93,15 +93,15 @@ const readSingleFile = async (req, res) => {
         // read existing id
         let extFile = await FileSchema.findById({ _id : fileId })
             if(!extFile)
-                return res.status(StatusCodes.CONFLICT).json({ msg : `Requested file is id not exists` })
+                return res.status(StatusCodes.CONFLICT).json({ msg : `Requested file is id not exists` , success : false})
 
         // if file is belongs to authorized wser or not
             if(userId !== extFile.userId)
-                return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `Unauthorized file read...` })
+                return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `Unauthorized file read...` , success : false})
 
-        res.status(StatusCodes.ACCEPTED).json({ file : extFile })
+        res.status(StatusCodes.ACCEPTED).json({ file : extFile , success : true})
     } catch (err) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err })
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
     }
 }
 
@@ -114,11 +114,11 @@ const deleteFile = async (req, res) => {
         // read existing id
         let extFile = await FileSchema.findById({ _id : fileId })
         if(!extFile)
-            return res.status(StatusCodes.CONFLICT).json({ msg : `Requested file is id not exists` })
+            return res.status(StatusCodes.CONFLICT).json({ msg : `Requested file is id not exists`, success : false })
 
         // if file is belongs to authorized wser or not
         if(userId !== extFile.userId)
-            return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `Unauthorized file read...` })     
+            return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `Unauthorized file read...`, success : false })     
             
         // delete physical file from directory
         let filePath = path.resolve(__dirname, `../public/${extFile.newName}`)
@@ -129,14 +129,41 @@ const deleteFile = async (req, res) => {
 
             await FileSchema.findByIdAndDelete({ _id : extFile._id })
 
-            return res.status(StatusCodes.ACCEPTED).json({ msg : 'file deleted successfully'})
+            return res.status(StatusCodes.ACCEPTED).json({ msg : 'file deleted successfully', success : true})
         } else {
             return res.json({ msg : "file not exits",  extFile})
         }
         // res.json({ msg : "Delete file" })
     } catch (err) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err })
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
     }
 }
 
-module.exports = {uploadFile, readFile, readSingleFile, deleteFile}
+// to read all file contents without authentication
+const allFiles = async(req, res) => {
+    try {
+        let files = await FileSchema.find({})
+
+        res.status(StatusCodes.OK).json({ length : files.length, files , success : true})
+    } catch (err) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
+    }
+}
+
+const pdfFiles = async (req, res) => {
+    try {
+        let data = req.query
+        let files = await FileSchema.find({})
+
+        if(data.type === 'all'){
+            res.status(StatusCodes.OK).json({ data, lenght : files.length, data , success : true})
+        }else{
+            let filtered = files.filter((item) => item.extName === `.${data.type}`)
+            res.status(StatusCodes.OK).json({ data , length : filtered.length, filtered , success : true})
+        }
+    } catch (err) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
+    }
+}
+
+module.exports = {uploadFile, readFile, readSingleFile, deleteFile, allFiles, pdfFiles}
