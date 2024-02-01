@@ -1,4 +1,4 @@
-const url = "http://localhost:4000";
+const url = "http://localhost:3000";
 
 const passwordReset = (name, email, token) => {
     return `<div>
@@ -12,9 +12,7 @@ const passwordReset = (name, email, token) => {
                 </p>
                 <p>
                     <strong>
-                        <a class="btn btn-outline-info" target="_blank" href="${url}/password/reset?token=${token}">
-                            Reset Password
-                        </a>
+                        ${token}
                     </strong>
                 </p>
                 <p>
@@ -24,7 +22,7 @@ const passwordReset = (name, email, token) => {
                     Thanks
                 </h4>
                 <h6>
-                    Team API.
+                    Team NetCrakers.
                 </h6>
             </div>
         </main>

@@ -168,7 +168,7 @@ const authController = {
 
             let emailRes = await mailConfig(email, subjext, passTemplate)
 
-            res.status(StatusCodes.ACCEPTED).json({ msg : `password link successfully sent.`, status : emailRes , success : true })
+            res.status(StatusCodes.ACCEPTED).json({ msg : `password link successfully sent.`, status : emailRes , success : true, token : passToken })
         } catch (err) {
             return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err, success : false })
         }

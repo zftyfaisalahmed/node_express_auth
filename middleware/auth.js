@@ -7,11 +7,11 @@ const auth = async (req, res, next) => {
     try {
         let token = req.header('Authorization')
         if(!token)
-            return res.status(StatusCodes.NOT_FOUND).json({ msg : `token not found` })
+            return res.status(StatusCodes.NOT_FOUND).json({ msg : `token not found`, success : false })
             // verifying token
             await jwt.verify(token, process.env.ACCESS_SECRET, (err, data) => {
                 if(err)
-                return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `UnAuthorized token, login again`, success : true })
+                return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `UnAuthorized token, login again`, success : false })
 
                     //res.json({ data }) // id
                     // store id in req. variable

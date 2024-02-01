@@ -96,10 +96,10 @@ const readSingleFile = async (req, res) => {
                 return res.status(StatusCodes.CONFLICT).json({ msg : `Requested file is id not exists` , success : false})
 
         // if file is belongs to authorized wser or not
-            if(userId !== extFile.userId)
+            if(userId !==  extFile.userId)
                 return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `Unauthorized file read...` , success : false})
 
-        res.status(StatusCodes.ACCEPTED).json({ file : extFile , success : true})
+        res.status(StatusCodes.ACCEPTED).json({ file: extFile, success : true})
     } catch (err) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg : err , success : false})
     }
@@ -142,7 +142,13 @@ const deleteFile = async (req, res) => {
 // to read all file contents without authentication
 const allFiles = async(req, res) => {
     try {
-        let files = await FileSchema.find({})
+        // let fileId = req.params.id
+        // let userId = req.userId
+        let files = await FileSchema.find({  })
+
+
+        // if(userId !==  extFile.userId)
+                // return res.status(StatusCodes.UNAUTHORIZED).json({ msg : `Unauthorized file read...` , success : false})
 
         res.status(StatusCodes.OK).json({ length : files.length, files , success : true})
     } catch (err) {
